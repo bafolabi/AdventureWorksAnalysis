@@ -124,11 +124,27 @@ SELECT "Row Number", LastName, SalesYTD, PostalCode
 FROM RankedSales
 ORDER BY PostalCode;
 
+-- return the total ListPrice and StandardCost of products for each color. Products that name starts with 'Mountain' and ListPrice is more than zero
+SELECT Color,SUM(ListPrice) AS TotalListPrice, SUM(StandardCost) AS TotalStandardCost 
+FROM Production.Product
+WHERE Name LIKE 'Mountain%' AND Color IS NOT NULL
+GROUP BY Color
+HAVING SUM(ListPrice) > 0
+ORDER BY Color;
+
+-- Show the summary of the TotalSalesYTD amounts for all SalesQuota groups and return SalesQuota and TotalSalesYTD.
+SELECT SalesQuota, SUM(SalesYTD) AS TotalSalesYTD,
+GROUPING(SalesQuota) AS Grouping
+FROM Sales.SalesPerson
+GROUP BY ROLLUP (SalesQuota )
+
 -- Lastly, let's retrieve the employee's Weekly salary by their full name
 SELECT CAST(ep.RateChangeDate AS DATE) AS RateDate , CONCAT(p.LastName, ', ', p.MiddleName, ' ', p.FirstName) AS FullName, ep.Rate * 40 AS WeeklySalary
 FROM HumanResources.EmployeePayHistory AS ep
 JOIN Person.Person AS p ON ep.BusinessEntityID = p.BusinessEntityID
 ORDER BY FullName;
+
+
 
 
 
