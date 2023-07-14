@@ -138,13 +138,32 @@ GROUPING(SalesQuota) AS Grouping
 FROM Sales.SalesPerson
 GROUP BY ROLLUP (SalesQuota )
 
+-- Now, We Want to Analyze Salary Percentiles by Department: Exploring Employee Salary Distribution and Ranking
+SELECT eph.Department, eph.LastName, edh.Rate,  CUME_DIST() OVER (PARTITION BY Department ORDER BY Rate) AS CumulativeDistribution, PERCENT_RANK() OVER (PARTITION BY Department ORDER BY Rate) AS Percentage_Rank
+ FROM HumanResources.vemployeedepartmenthistory AS eph
+ JOIN HumanResources.EmployeePayHistory AS edh
+ ON eph.BusinessEntityID = edh.BusinessEntityID
+ ORDER BY Department, Rate DESC;
+
+-- We Want to Identify the Least Expensive Product: Exploring the Lowest List Price
+SELECT Name, ListPrice,
+       FIRST_VALUE(Name) OVER (ORDER BY ListPrice ASC) AS LeastExpensive
+FROM Production.Product
+WHERE ProductSubcategoryID = 1;
+
+-- Now, let's return the employee with the fewest number of vacation hours compared to other employees with the same job title,
+SELECT e.JobTitle,p.LastName,e.VacationHours, FIRST_VALUE(LastName) OVER (PARTITION BY JobTitle ORDER BY VacationHours) AS FEWERVACATIONHRS
+FROM HumanResources.Employee AS e
+JOIN Person.Person AS p
+ON e.BusinessEntityID = p.BusinessEntityID;
+
+-- Let's Calculate Row Number for Salespeople Based on Year-to-Date Sales Ranking
+SELECT ROW_NUMBER() OVER (ORDER BY SalesYTD DESC) AS Row_number, FirstName, LastName, ROUND(SalesYTD,2) AS 'Sales YTD'
+FROM Sales.vSalesPerson
+WHERE TerritoryName IS NOT NULL AND SalesYTD <> 0;
+
 -- Lastly, let's retrieve the employee's Weekly salary by their full name
 SELECT CAST(ep.RateChangeDate AS DATE) AS RateDate , CONCAT(p.LastName, ', ', p.MiddleName, ' ', p.FirstName) AS FullName, ep.Rate * 40 AS WeeklySalary
 FROM HumanResources.EmployeePayHistory AS ep
 JOIN Person.Person AS p ON ep.BusinessEntityID = p.BusinessEntityID
 ORDER BY FullName;
-
-
-
-
-
